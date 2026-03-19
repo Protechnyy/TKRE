@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,6 +21,7 @@ from transformers.modeling_outputs import MaskedLMOutput
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+os.environ.setdefault("WANDB_PROJECT", "TKRE")
 
 @dataclass
 class TKREOutput(MaskedLMOutput):
@@ -44,7 +46,25 @@ class TKREDataset(Dataset):
         
     def load_data(self, file_path: str) -> List[Dict]:
         with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            content = f.read().strip()
+
+        if not content:
+            return []
+
+        if content[0] == "[":
+            raw_data = json.loads(content)
+        else:
+            raw_data = [json.loads(line) for line in content.splitlines() if line.strip()]
+
+        normalized_data = []
+        for item in raw_data:
+            normalized_data.append({
+                "generated_text": item.get("generated_text", item.get("text", "")),
+                "subject": item.get("subject", item.get("subj", "")),
+                "object": item.get("object", item.get("obj", "")),
+                "relation": item["relation"],
+            })
+        return normalized_data
 
     def find_token_span(self, input_ids: List[int], target_ids: List[int]) -> List[int]:
         """寻找子序列位置"""
@@ -256,10 +276,20 @@ class TKREModel(RobertaForMaskedLM):
         )
 
 def train_tkre_stage2(data_path: str, output_dir: str):
-    model_name = "roberta-large"
-    tokenizer = RobertaTokenizer.from_pretrained(model_name)
+    with open(data_path, 'r', encoding='utf-8') as f:
+        raw_content = f.read().strip()
 
-    relations = ["per:place_of_birth", "org:founded_by", "no_relation", "per:employee_of"]
+    if not raw_content:
+        raise ValueError(f"Stage-2 data file is empty: {data_path}")
+
+    if raw_content[0] == "[":
+        raw_data = json.loads(raw_content)
+    else:
+        raw_data = [json.loads(line) for line in raw_content.splitlines() if line.strip()]
+
+    model_name = "../../outputs/tkre_mslm_checkpoint"
+    tokenizer = RobertaTokenizer.from_pretrained(model_name)
+    relations = sorted({item["relation"] for item in raw_data})
     relation2id = {r: i for i, r in enumerate(relations)}
 
     dataset = TKREDataset(data_path, tokenizer, relation2id)
@@ -276,6 +306,7 @@ def train_tkre_stage2(data_path: str, output_dir: str):
     
     training_args = TrainingArguments(
         output_dir=output_dir,
+        run_name="tkre_scl_pretrain",
         num_train_epochs=5,
         per_device_train_batch_size=16,
         learning_rate=2e-5,
@@ -293,9 +324,10 @@ def train_tkre_stage2(data_path: str, output_dir: str):
     logger.info("Starting TKRE Stage-2 (MSLM + SCL) Pre-training...")
     trainer.train()
     model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
 
 if __name__ == "__main__":
     train_tkre_stage2(
-        data_path="./datasets/synthetic_data.json", 
-        output_dir="./output/tkre_stage2_final"
+        data_path="../../datasets/synthetic_data/llm_da_8.json",
+        output_dir="../../outputs/tkre_stage2_final"
     )

@@ -1,3 +1,4 @@
+import os
 import torch
 from torch.utils.data import Dataset
 import json
@@ -14,6 +15,7 @@ from transformers import (
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+os.environ.setdefault("WANDB_PROJECT", "TKRE")
 
 class RelationMLMDataset(Dataset):
     def __init__(self, file_path: str, tokenizer: RobertaTokenizer, max_length: int = 128):
@@ -126,7 +128,7 @@ class RelationMLMDataset(Dataset):
 
 def train_relation_mlm(data_path: str, output_dir: str):
 
-    model_name = "roberta-large" # 本地路径
+    model_name = "../../hf-models/roberta-large"
     tokenizer = RobertaTokenizer.from_pretrained(model_name)
     model = RobertaForMaskedLM.from_pretrained(model_name)
     
@@ -134,8 +136,9 @@ def train_relation_mlm(data_path: str, output_dir: str):
 
     training_args = TrainingArguments(
         output_dir=output_dir,
+        run_name="tkre_mslm_pretrain",
         overwrite_output_dir=True,
-        num_train_epochs=5, # 根据数据量调整
+        num_train_epochs=5,
         per_device_train_batch_size=16,
         learning_rate=2e-5,
         weight_decay=0.01,
@@ -161,8 +164,7 @@ def train_relation_mlm(data_path: str, output_dir: str):
     tokenizer.save_pretrained(output_dir)
 
 if __name__ == "__main__":
-    # 请确保路径正确
     train_relation_mlm(
-        data_path="./datasets/explanation_data.json", # 假设这是你的 explanation-driven corpus
-        output_dir="./output/tkre_mslm_checkpoint"
+        data_path="../../datasets/synthetic_data/llm_corpus.json",
+        output_dir="../../outputs/tkre_mslm_checkpoint"
     )

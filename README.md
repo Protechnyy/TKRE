@@ -79,14 +79,14 @@ bash data_augment.sh
 2. Knowledge-Guided Pre-training
 Perform the two-stage pre-training (MSLM + SCL) on the synthetic and explanation-driven corpus.
 ```
+cd codes/traditional_re
+
 python mslm_model.py
 
 python cl_model.py
 ```
 3. Task-Oriented Fine-tuningFine-tune the pre-trained model on the $K$-shot support sets ($K=8, 16, 32$).
 ```
-cd codes/traditional_re
-
 # Run the fine-tuning script
 bash fewshot_scripts/run_roberta.sh
 ```

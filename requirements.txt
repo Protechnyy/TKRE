@@ -1,0 +1,13 @@
+# Core
+torch>=1.13.0
+transformers>=4.30.0
+numpy>=1.21.0
+scikit-learn>=1.0.0
+tqdm>=4.65.0
+
+# Utilities
+ujson>=5.8.0
+wandb>=0.15.0
+
+# Retrieval for demonstration module
+faiss-cpu>=1.7.4

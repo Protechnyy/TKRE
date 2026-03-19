@@ -1,6 +1,8 @@
 import pdb
+import argparse
 import json
 import os
+from pathlib import Path
 
 def str_list_compare(s_list1, s_list2):
     if len(s_list1) != len(s_list2):
@@ -142,10 +144,30 @@ def merge(origin_filepath, da_filepath_list, output_filepath, add_k=8):
         json.dump(data, f_out, indent=True)
 
 if __name__ == '__main__':
-    merge(
-        origin_filepath='/data/guoquanjiang/GenPT/data/tacred/aug-k-shot/8-21/train.json',
-        da_filepath_list=['/data/guoquanjiang/DSARE/datasets/llama2_13B_da.json'],
-        output_filepath='../../datasets/example_data/merged_train.json',
-        add_k=8
-    )
+    repo_root = Path(__file__).resolve().parents[2]
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--origin_filepath",
+        type=str,
+        default=str(repo_root / "datasets" / "example_data" / "few_train.json"),
+    )
+    parser.add_argument(
+        "--da_filepath_list",
+        nargs="+",
+        default=[str(repo_root / "datasets" / "synthetic_data" / "llm_da_8.json")],
+    )
+    parser.add_argument(
+        "--output_filepath",
+        type=str,
+        default=str(repo_root / "datasets" / "example_data" / "merged_train.json"),
+    )
+    parser.add_argument("--add_k", type=int, default=8)
+    args = parser.parse_args()
+
+    merge(
+        origin_filepath=args.origin_filepath,
+        da_filepath_list=args.da_filepath_list,
+        output_filepath=args.output_filepath,
+        add_k=args.add_k
+    )

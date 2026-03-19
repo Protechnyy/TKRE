@@ -1,6 +1,7 @@
 import argparse
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
+os.environ.setdefault("WANDB_PROJECT", "TKRE")
 
 import numpy as np
 import torch
@@ -149,8 +150,8 @@ def main():
                         help="Number of steps to evaluate the model")
 
     parser.add_argument("--dropout_prob", type=float, default=0.1)
-    parser.add_argument("--project_name", type=str, default="RE_baseline")
-    parser.add_argument("--run_name", type=str, default="tacred")
+    parser.add_argument("--project_name", type=str, default="TKRE")
+    parser.add_argument("--run_name", type=str, default="tkre_finetune")
 
     args = parser.parse_args()
     wandb.init(project=args.project_name, name=args.run_name)

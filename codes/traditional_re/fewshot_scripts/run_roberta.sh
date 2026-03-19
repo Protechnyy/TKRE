@@ -1,9 +1,10 @@
 SEED=42
-python train.py \
+# Default to GPU 1 (the free 4090 in the current setup); override with CUDA_VISIBLE_DEVICES if needed.
+CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-1} python train.py \
     --data_dir ../../datasets/example_data \
     --train_filename merged_train.json \
-    --data_test_dir ../../datasets/ \
-    --model_name_or_path /home/guoquanjiang/DSARE/hf-models/AI-ModelScope/roberta-large \
+    --data_test_dir ../../datasets/example_data \
+    --model_name_or_path ../../outputs/tkre_stage2_final \
     --input_format typed_entity_marker_punct \
     --seed $SEED \
     --train_batch_size 4 \

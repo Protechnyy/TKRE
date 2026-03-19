@@ -65,10 +65,9 @@ if __name__ == "__main__":
     
     auto_modelpath = args.auto_modelpath
     tokenizer = AutoTokenizer.from_pretrained(auto_modelpath)
-    # model = AutoModelForCausalLM.from_pretrained(auto_modelpath, device_map="auto")
     pipe = pipeline(
         'text-generation',
-        model='/data/guoquanjiang/Llama-2-13b-chat-hf',
+        model=auto_modelpath,
         torch_dtype=torch.float16,
         device_map='auto'
     )

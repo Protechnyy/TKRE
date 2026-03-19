@@ -162,10 +162,9 @@ if __name__ == "__main__":
     
     auto_modelpath = args.auto_modelpath
     tokenizer = AutoTokenizer.from_pretrained(auto_modelpath)
-    # model = AutoModelForCausalLM.from_pretrained(auto_modelpath, device_map="auto")
     pipe = pipeline(
         'text-generation',
-        model='/home/guoquanjiang/Chinese-LLaMA-Alpaca-2/models/ydyajyA/Llama-2-13b-chat-hf',
+        model=auto_modelpath,
         torch_dtype=torch.float16,
         device_map='auto'
     )
@@ -201,8 +200,10 @@ if __name__ == "__main__":
             generated_samples = []
             generated_texts = set()  # 记录已生成的文本，防止重复
             max_attempts = 10  # 最大生成尝试次数
-            
-            while len(generated_samples) < 8:
+            attempts = 0
+
+            while len(generated_samples) < 8 and attempts < max_attempts:
+                attempts += 1
                 # 构建 Prompt
                 prompt = '''
                     "One sample in relation extraction datasets consists of a relation, "
@@ -247,4 +248,3 @@ if __name__ == "__main__":
             # 写入生成的样本到文件
             for sample in generated_samples:
                 f.write(json.dumps(sample, ensure_ascii=False) + '\n')
-
